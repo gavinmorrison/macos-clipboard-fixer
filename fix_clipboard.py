@@ -184,7 +184,9 @@ def main(poll_interval: float):
 
             # Process only if the clipboard changed AND the read was successful (current_types is not None)
             if clipboard_changed and current_types is not None:
-                log.debug("\n--- Clipboard Changed ---")
+                # Print separator directly for visual clarity in debug, outside formal log message
+                if log.isEnabledFor(logging.DEBUG):
+                    print("\n--- Clipboard Changed ---")
                 log.debug(f"Types: {current_types}")
                 # Log the actual plain text content for better debugging insight
                 log.debug(f"Plain Text: '{current_plain_text}'")
