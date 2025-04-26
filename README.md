@@ -16,7 +16,6 @@ A simple Python script for macOS that monitors the clipboard and automatically r
 *   [Installation](#installation)
 *   [Usage](#usage)
 *   [Deployment (Running in the Background)](#deployment-running-in-the-background)
-*   [Contributing](#contributing)
 *   [License](#license)
 
 ---
