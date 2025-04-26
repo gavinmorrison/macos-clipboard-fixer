@@ -162,7 +162,7 @@ EOF
     print_info "Installation complete!"
     print_info "Service '$SERVICE_LABEL' is running and will start on login."
     print_info "Installed files are in: ${INSTALL_DIR}"
-    print_info "Logs: /tmp/${SERVICE_LABEL}.log and /tmp/${SERVICE_LABEL}.err"
+    print_info "Logs (stdout & stderr) are directed to: /tmp/${SERVICE_LABEL}.log"
 }
 
 # --- Uninstallation Function ---
