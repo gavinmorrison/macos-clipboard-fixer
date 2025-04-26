@@ -1,10 +1,10 @@
 # macOS Clipboard Fixer
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Licence: MIT](https://img.shields.io/badge/Licence-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Version](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/downloads/)
 [![PyObjC](https://img.shields.io/badge/dependency-PyObjC-orange.svg)](https://pyobjc.readthedocs.io/en/latest/)
 
-A simple Python script for macOS that monitors the clipboard and automatically removes extraneous URL data when copying images from applications like Safari, ensuring cleaner pasting into other apps.
+A simple Python script for macOS that monitors the clipboard and automatically removes extraneous URL data when copying images from applications like Safari, ensuring cleaner pasting into other apps. Includes a management script for easy installation and setup as a background service.
 
 ---
 
@@ -13,20 +13,19 @@ A simple Python script for macOS that monitors the clipboard and automatically r
 *   [The Problem](#the-problem)
 *   [The Solution](#the-solution)
 *   [Requirements](#requirements)
-*   [Installation](#installation)
-*   [Usage](#usage)
-*   [Deployment (Running in the Background)](#deployment-running-in-the-background)
-*   [License](#license)
+*   [Installation & Management](#installation--management)
+*   [Usage (Manual)](#usage-manual)
+*   [Licence](#licence)
 
 ---
 
 ## The Problem
 
-When copying images from certain applications on macOS (notably Safari), the clipboard often contains *both* the image data (e.g., TIFF or PNG) and the source URL as plain text. While this can sometimes be useful, many applications don't handle this combination gracefully when pasting. This can lead to unexpected behavior, such as pasting the URL instead of the intended image.
+When copying images from certain applications on macOS (notably Safari), the clipboard often contains *both* the image data (e.g., TIFF or PNG) and the source URL as plain text. While this can sometimes be useful, many applications don't handle this combination gracefully when pasting. This can lead to unexpected behaviour, such as pasting the URL instead of the intended image.
 
 ## The Solution
 
-This script, `fix_clipboard.py`, runs quietly in the background, monitoring the macOS clipboard. It specifically looks for instances where both image data and URL text are present simultaneously (but it's not a file copy operation).
+This project provides `fix_clipboard.py`, a script that runs quietly in the background, monitoring the macOS clipboard. It specifically looks for instances where both image data and plain text are present simultaneously (but it's not a file copy operation).
 
 When this pattern is detected, the script automatically:
 1.  Clears the current clipboard contents.
@@ -34,132 +33,83 @@ When this pattern is detected, the script automatically:
 
 This ensures that pasting into applications that primarily expect image data works smoothly and predictably.
 
+To simplify setup and running the script automatically on login, a management script `manage_clipboard_fixer.sh` is included.
+
 ## Requirements
 
-*   **Python 3:** Developed and tested with Python 3.9+, but should be compatible with most modern Python 3 versions.
-*   **PyObjC:** Python bindings for Apple's Objective-C frameworks are required to interact with the native clipboard. Specifically, the `pyobjc-framework-Cocoa` package is needed.
+*   **Python 3:** Developed and tested with Python 3.9+, but should be compatible with most modern Python 3 versions. Command `python3` must be available in your PATH.
+*   **PyObjC:** Python bindings for Apple's Objective-C frameworks are required to interact with the native clipboard. The management script will install the necessary `pyobjc-framework-Cocoa` package automatically into a dedicated virtual environment.
 
-## Installation
+## Installation & Management
 
-1.  **Clone the Repository:**
+The `manage_clipboard_fixer.sh` script handles installation, uninstallation, and status checking of the background service.
+
+1.  **Download or Clone:**
+    Get the project files, ensuring `manage_clipboard_fixer.sh` and `fix_clipboard.py` are in the same directory.
     ```bash
     git clone https://github.com/gavinmorrison/macos-clipboard-fixer.git
     cd macos-clipboard-fixer
     ```
-    Alternatively, you can just download the `fix_clipboard.py` script directly.
 
-2.  **Set up a Virtual Environment (Recommended):**
-    Using a virtual environment prevents conflicts with system-wide packages.
+2.  **Make the Management Script Executable:**
     ```bash
-    # Create the virtual environment directory
-    python3 -m venv .venv
-
-    # Activate the virtual environment (macOS)
-    source .venv/bin/activate
+    chmod +x manage_clipboard_fixer.sh
     ```
 
-3.  **Install Dependencies:**
-    With the virtual environment active, install the required PyObjC package:
+3.  **Install:**
+    Run the script with the `install` command. It will prompt you for an installation location (defaults to `~/Library/Application Support/ClipboardFixer`).
     ```bash
+    ./manage_clipboard_fixer.sh install
+    ```
+    This command performs the following steps:
+    *   Checks for Python 3.
+    *   Asks for and creates the installation directory.
+    *   Copies `fix_clipboard.py` to the installation directory.
+    *   Creates a Python virtual environment (`.venv`) inside the installation directory.
+    *   Installs `pyobjc-framework-Cocoa` into the virtual environment.
+    *   Creates a `launchd` service `.plist` file in `~/Library/LaunchAgents/` configured to run the script from the installation directory using the virtual environment's Python. The service label defaults to `com.<your_username>.clipboardfixer`.
+    *   Loads and starts the `launchd` service.
+
+    The script will now run automatically whenever you log in. Logs are stored in `/tmp/com.<your_username>.clipboardfixer.log` and `.err`.
+
+    *(Customising the Service Label: If you need to use a different label, edit the `SERVICE_LABEL` variable near the top of the `manage_clipboard_fixer.sh` script **before** running the `install` command.)*
+
+4.  **Check Status:**
+    You can check if the `launchd` service is loaded:
+    ```bash
+    ./manage_clipboard_fixer.sh status
+    ```
+
+5.  **Uninstall:**
+    To stop the service and remove the `launchd` configuration:
+    ```bash
+    ./manage_clipboard_fixer.sh uninstall
+    ```
+    This command will:
+    *   Unload the service from `launchd`.
+    *   Remove the `.plist` file from `~/Library/LaunchAgents/`.
+    *   Ask if you also want to remove the installation directory (containing the script and virtual environment).
+
+    *(Note: If you customised the `SERVICE_LABEL` by editing the script before installation, ensure the script still has the same customised label when you run `uninstall`.)*
+
+## Usage (Manual)
+
+If you prefer not to install the background service, you can still set up the environment manually and run the script directly for testing or temporary use.
+
+1.  **Clone or Download:** Get the `fix_clipboard.py` script.
+2.  **Set up Virtual Environment:**
+    ```bash
+    python3 -m venv .venv
+    source .venv/bin/activate
     pip install pyobjc-framework-Cocoa
     ```
-    *(To deactivate the virtual environment when done, simply run the command `deactivate`)*
-
-## Usage
-
-Ensure your virtual environment is active (if you created one) by running `source .venv/bin/activate`.
-
-Run the script directly from your terminal:
-
-```bash
-python3 fix_clipboard.py
-```
-
-The script will log status messages to the console indicating when it starts and when it modifies the clipboard. You can leave this terminal window open to keep the script running, or use a deployment method (see below) to run it persistently in the background.
-
-**Command-Line Options:**
-
-*   `--debug`: Enables more verbose (debug level) logging output. Useful for troubleshooting or understanding exactly what the script is seeing on the clipboard.
+3.  **Run the Script:**
+    While the virtual environment is active:
     ```bash
-    python3 fix_clipboard.py --debug
+    python3 fix_clipboard.py
     ```
-*   `-i <seconds>`, `--interval <seconds>`: Specifies how often (in seconds) the script should check the clipboard contents. The default is `1.0` second. Setting this lower (e.g., `0.5`) makes the script more responsive but uses slightly more resources.
-    ```bash
-    python3 fix_clipboard.py --interval 0.5
-    ```
+    Press `Ctrl+C` to stop it. Use `--debug` for verbose logging or `--interval <seconds>` to change the check frequency.
 
-To stop the script if it's running in the foreground, press `Ctrl+C` in the terminal.
+## Licence
 
-## Deployment (Running in the Background)
-
-For the script to run automatically every time you log in, using `launchd` (the standard macOS service manager) is the recommended approach.
-
-1.  **Determine Absolute Paths:**
-    You'll need the absolute paths to your Python executable (within the virtual environment, if used) and the `fix_clipboard.py` script.
-    *   **Python Path:** While the virtual environment is active, run `which python3`.
-    *   **Script Path:** Navigate to the directory containing `fix_clipboard.py` and run `pwd`. Note the full path.
-
-2.  **Create a Launch Agent `.plist` File:**
-    Create a file named `com.yourusername.clipboardfixer.plist` (use a unique identifier, following reverse-DNS notation) inside the `~/Library/LaunchAgents/` directory. Paste the following content into the file, **replacing the placeholder paths** with the absolute paths you found in step 1.
-
-    ```xml
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-        <key>Label</key>
-        <string>com.yourusername.clipboardfixer</string> <!-- MUST be unique! -->
-
-        <key>ProgramArguments</key>
-        <array>
-            <!-- Path to Python executable (inside .venv if used) -->
-            <string>/absolute/path/to/.venv/bin/python3</string>
-            <!-- Path to the script -->
-            <string>/absolute/path/to/fix_clipboard.py</string>
-            <!-- Optional: Add arguments like --interval here -->
-            <!-- <string>--interval</string> -->
-            <!-- <string>0.5</string> -->
-        </array>
-
-        <!-- Run the script when the user logs in -->
-        <key>RunAtLoad</key>
-        <true/>
-
-        <!-- Keep the script running; restart if it crashes -->
-        <key>KeepAlive</key>
-        <true/>
-
-        <!-- Optional: Redirect standard output and error to log files -->
-        <key>StandardOutPath</key>
-        <string>/tmp/clipboardfixer.log</string>
-        <key>StandardErrorPath</key>
-        <string>/tmp/clipboardfixer.err</string>
-    </dict>
-    </plist>
-    ```
-
-3.  **Load the Launch Agent:**
-    Open the Terminal application and run the following command to load and start your new background service:
-    ```bash
-    launchctl load ~/Library/LaunchAgents/com.yourusername.clipboardfixer.plist
-    ```
-
-4.  **Verify (Optional):**
-    The script should now be running. You can check the log files specified (`/tmp/clipboardfixer.log` and `/tmp/clipboardfixer.err`) or use `launchctl list | grep clipboardfixer` to confirm the service is loaded.
-
-5.  **To Unload (Stop the Service):**
-    If you need to stop the background script permanently:
-    ```bash
-    launchctl unload ~/Library/LaunchAgents/com.yourusername.clipboardfixer.plist
-    ```
-
-6.  **To Reload (After Updating Script or Plist):**
-    If you modify the script or the `.plist` file, you need to unload and then load the service again for the changes to take effect:
-    ```bash
-    launchctl unload ~/Library/LaunchAgents/com.yourusername.clipboardfixer.plist
-    launchctl load ~/Library/LaunchAgents/com.yourusername.clipboardfixer.plist
-    ```
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT Licence. See the [LICENSE](LICENSE) file for details.
