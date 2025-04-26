@@ -136,10 +136,11 @@ do_install() {
     <true/>
     <key>KeepAlive</key>
     <true/>
+    <!-- Redirect both stdout and stderr to the same log file -->
     <key>StandardOutPath</key>
     <string>/tmp/${SERVICE_LABEL}.log</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/${SERVICE_LABEL}.err</string>
+    <string>/tmp/${SERVICE_LABEL}.log</string>
 </dict>
 </plist>
 EOF

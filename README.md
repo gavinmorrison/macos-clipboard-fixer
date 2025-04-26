@@ -70,15 +70,20 @@ The `manage_clipboard_fixer.sh` script handles installation, uninstallation, and
     *   Creates a `launchd` service `.plist` file in `~/Library/LaunchAgents/` configured to run the script from the installation directory using the virtual environment's Python. The service label defaults to `com.<your_username>.clipboardfixer`.
     *   Loads and starts the `launchd` service.
 
-    The script will now run automatically whenever you log in. Logs are stored in `/tmp/com.<your_username>.clipboardfixer.log` and `.err`.
+    The script will now run automatically whenever you log in. All logs (standard output and errors) are stored in `/tmp/com.<your_username>.clipboardfixer.log`.
 
-    *(Customising the Service Label: If you need to use a different label, edit the `SERVICE_LABEL` variable near the top of the `manage_clipboard_fixer.sh` script **before** running the `install` command.)*
+    *(Customising the Service Label: If you need to use a different label (e.g., `com.mycompany.clipboardfixer`), edit the `SERVICE_LABEL` variable directly near the top of the `manage_clipboard_fixer.sh` script **before** running the `install` command.)*
 
 4.  **Check Status:**
     You can check if the `launchd` service is loaded:
     ```bash
     ./manage_clipboard_fixer.sh status
     ```
+    You can view the combined log file using:
+    ```bash
+    tail -f /tmp/com.<your_username>.clipboardfixer.log
+    ```
+    *(Replace `<your_username>` with your actual username, or use the customised label if you changed it.)*
 
 5.  **Uninstall:**
     To stop the service and remove the `launchd` configuration:
@@ -91,6 +96,7 @@ The `manage_clipboard_fixer.sh` script handles installation, uninstallation, and
     *   Ask if you also want to remove the installation directory (containing the script and virtual environment).
 
     *(Note: If you customised the `SERVICE_LABEL` by editing the script before installation, ensure the script still has the same customised label when you run `uninstall`.)*
+    You may need to manually delete the log file (`/tmp/com.<your_username>.clipboardfixer.log`) if desired.
 
 ## Usage (Manual)
 
