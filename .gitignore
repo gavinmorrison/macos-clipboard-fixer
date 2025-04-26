@@ -1,0 +1,17 @@
+# Python Virtual Environment
+.venv/
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# macOS system files
+.DS_Store
+._*
+
+# VSCode specific settings (optional, remove if you want to commit .vscode config)
+.vscode/
+
+# Log files (if generated locally)
+*.log
+*.err
