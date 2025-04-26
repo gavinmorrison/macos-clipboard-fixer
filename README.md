@@ -116,6 +116,11 @@ If you prefer not to install the background service, you can still set up the en
     ```
     Press `Ctrl+C` to stop it. Use `--debug` for verbose logging or `--interval <seconds>` to change the check frequency.
 
+---
+
+## Disclaimer
+
+Apple, macOS, and Safari are trademarks of Apple Inc., registered in the U.S. and other countries and regions. This project is not affiliated with, sponsored by, or endorsed by Apple Inc.
 ## Licence
 
 This project is licensed under the MIT Licence. See the [LICENSE](LICENSE) file for details.
