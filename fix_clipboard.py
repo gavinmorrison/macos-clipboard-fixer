@@ -59,19 +59,19 @@ def get_clipboard_contents() -> Tuple[Optional[List[str]], Optional[str]]:
         pb = AppKit.NSPasteboard.generalPasteboard()
         # Get a list of data types currently available on the pasteboard
         types = pb.types()
-        # Specifically request the string content (often the URL when copying from Safari)
-        # Using NSPasteboardTypeString is more specific than the older 'public.utf8-plain-text'
-        url = pb.stringForType_(AppKit.NSPasteboardTypeString)
-        return types, url
+        # Specifically request the string content
+        # Using NSPasteboardTypeString is the standard way to get plain text.
+        plain_text_content = pb.stringForType_(AppKit.NSPasteboardTypeString)
+        return types, plain_text_content
     except Exception as e:
         # Log errors if clipboard access fails (e.g., permissions issues, rare OS errors)
         log.error(f"Error accessing clipboard: {e}")
         return None, None # Return None to indicate failure
 
-def has_image_and_url(types: Optional[List[str]]) -> bool:
+def has_image_and_text(types: Optional[List[str]]) -> bool:
     """
     Checks if the pasteboard types indicate the specific problematic pattern:
-    an image AND a URL, but NOT primarily a file copy operation.
+    an image AND plain text, but NOT primarily a file copy operation.
 
     Args:
         types: A list of pasteboard type strings, or None if clipboard access failed.
@@ -88,8 +88,10 @@ def has_image_and_url(types: Optional[List[str]]) -> bool:
     # NSPasteboardTypePNG is another possibility
     has_image = any(t in types for t in [AppKit.NSPasteboardTypeTIFF, AppKit.NSPasteboardTypePNG])
 
-    # Check if plain text is present (this usually holds the URL)
-    has_url = AppKit.NSPasteboardTypeString in types
+    # Check if plain text is present (NSPasteboardTypeString).
+    # In the target scenario (Safari image copy), this usually holds the URL,
+    # but the check itself is just for the presence of *any* plain text type.
+    has_text = AppKit.NSPasteboardTypeString in types
 
     # Check if it looks like a file copy operation (e.g., copying a file in Finder)
     # We want to IGNORE these cases, as they might legitimately have file URLs and image previews.
@@ -98,10 +100,10 @@ def has_image_and_url(types: Optional[List[str]]) -> bool:
     has_file = any(t in types for t in [AppKit.NSPasteboardTypeFileURL, "public.file-path"])
 
     # Log the findings for debugging purposes
-    log.debug(f"Clipboard check: Has image: {has_image}, Has URL: {has_url}, Has file: {has_file}")
+    log.debug(f"Clipboard check: Has image: {has_image}, Has text: {has_text}, Has file: {has_file}")
 
-    # The target condition: image is present, URL is present, but it's NOT a file copy
-    return has_image and has_url and not has_file
+    # The target condition: image is present, plain text is present, but it's NOT a file copy
+    return has_image and has_text and not has_file
 
 def copy_image_only() -> bool:
     """
@@ -167,29 +169,29 @@ def main(poll_interval: float):
     # Variables to store the state of the clipboard from the previous check
     # Initialized to None to ensure the first check runs
     last_types: Optional[List[str]] = None
-    last_url: Optional[str] = None
+    last_plain_text: Optional[str] = None
 
     # Infinite loop to continuously monitor the clipboard
     while True:
         try:
             # Get the current state of the clipboard
-            current_types, current_url = get_clipboard_contents()
+            current_types, current_plain_text = get_clipboard_contents()
 
             # Determine if the clipboard has changed since the last check.
             # Also consider the case where the previous read failed (current_types would be None then).
-            # We compare both the list of types and the URL content.
-            clipboard_changed = (current_types != last_types or current_url != last_url)
+            # We compare both the list of types and the plain text content.
+            clipboard_changed = (current_types != last_types or current_plain_text != last_plain_text)
 
             # Process only if the clipboard changed AND the read was successful (current_types is not None)
             if clipboard_changed and current_types is not None:
                 log.debug("\n--- Clipboard Changed ---")
                 log.debug(f"Types: {current_types}")
-                # Log the actual URL content for better debugging insight
-                log.debug(f"URL: '{current_url}'")
+                # Log the actual plain text content for better debugging insight
+                log.debug(f"Plain Text: '{current_plain_text}'")
 
                 # Check if the new clipboard state matches the problematic pattern
-                if has_image_and_url(current_types):
-                    log.info("Detected image + URL pattern. Attempting fix...")
+                if has_image_and_text(current_types):
+                    log.info("Detected image + text pattern. Attempting fix...")
                     # Attempt to fix the clipboard by re-copying only the image
                     copy_image_only()
                 else:
@@ -200,7 +202,7 @@ def main(poll_interval: float):
             # Only update if the read was successful to avoid losing the last good state on error.
             if current_types is not None:
                 last_types = current_types
-                last_url = current_url
+                last_plain_text = current_plain_text
 
             # Pause execution for the specified interval before the next check
             time.sleep(poll_interval)
