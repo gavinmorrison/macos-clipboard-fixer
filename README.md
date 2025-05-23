@@ -118,6 +118,16 @@ If you prefer not to install the background service, you can still set up the en
 
 ---
 
+## Important Security Warning
+
+This script interacts directly with your macOS clipboard, which can contain sensitive information, including passwords. Running any script as a background service carries inherent risks. While this script is designed to be simple and focused, **the author is not liable for any damages, data loss, or security breaches that may arise from its use, misuse, or any vulnerabilities.**
+
+**Users are strongly advised to:**
+*   **Review the source code (`fix_clipboard.py`) thoroughly** before installation to understand its functionality.
+*   **Understand the implications** of running a script as a `launchd` service.
+*   **Use this software at their own risk.**
+
+---
 ## Disclaimer
 
 Apple, macOS, and Safari are trademarks of Apple Inc., registered in the U.S. and other countries and regions. This project is not affiliated with, sponsored by, or endorsed by Apple Inc.
