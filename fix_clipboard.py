@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (c) 2025 Gavin Morrison. Licensed under the MIT License.
+# For the latest version and more information, visit:
+# https://github.com/gavinmorrison/macos-clipboard-fixer/
 
 """
 Monitors the macOS clipboard and fixes an issue where copying images from

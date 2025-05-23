@@ -1,4 +1,7 @@
 #!/bin/bash
+# Copyright (c) 2025 Gavin Morrison. Licensed under the MIT License.
+# For the latest version and more information, visit:
+# https://github.com/gavinmorrison/macos-clipboard-fixer/
 
 # Manages the installation and launchd service for macos-clipboard-fixer.
 
